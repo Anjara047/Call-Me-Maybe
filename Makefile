@@ -18,7 +18,7 @@ run:
 	@HF_HOME=$(GOINFRE_CACHE)/huggingface \
 		UV_CACHE_DIR=$(GOINFRE_CACHE)/uv \
 		UV_PROJECT_ENVIRONMENT=$(GOINFRE_VENV) \
-		uv run $(PYTHON) -m src
+		uv run --no-sync $(PYTHON) -m src
 
 debug:
 	@HF_HOME=$(GOINFRE_CACHE)/huggingface \
@@ -29,6 +29,8 @@ debug:
 clean:
 	@rm -rf src/__pycache__
 	@rm -rf src/models/__pycache__
+	@rm -rf .mypy_cache
+	@rm -rf src/models/.mypy_pycache
 
 fclean: clean
 	@rm -rf .venv

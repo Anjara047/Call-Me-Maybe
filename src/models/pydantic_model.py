@@ -1,7 +1,11 @@
+import sys
+
+
 try:
     from pydantic import BaseModel
 except (ImportError,ModuleNotFoundError):
     print("Pydantic is still missing")
+    sys.exit()
 
 class ReturnType(BaseModel):
     type: str
