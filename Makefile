@@ -1,6 +1,6 @@
 PYTHON = python3
-GOINFRE_CACHE = $(HOME)/goinfre/call_me_maybe_cache
-GOINFRE_VENV = $(HOME)/goinfre/call_me_maybe_venv
+GOINFRE_CACHE = $(HOME)/sgoinfre/call_me_maybe_cache
+GOINFRE_VENV = $(HOME)/sgoinfre/call_me_maybe_venv
 
 .PHONY: all install run debug clean fclean lint
 
@@ -27,15 +27,19 @@ debug:
 		uv run $(PYTHON) -m pdb -m src
 
 clean:
-	@rm -rf src/__pycache__
-	@rm -rf src/models/__pycache__
+	@rm -rf __pycache__
 	@rm -rf .mypy_cache
+	@rm -rf src/__pycache__
+	@rm -rf src/.mypy_cache
+	@rm -rf src/models/__pycache__
 	@rm -rf src/models/.mypy_pycache
 
 fclean: clean
 	@rm -rf .venv
 	@rm -rf $(GOINFRE_CACHE)
 	@rm -rf $(GOINFRE_VENV)
+	@rm -rf data/output
+
 
 lint:
 	-@flake8 src/

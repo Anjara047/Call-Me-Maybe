@@ -1,10 +1,8 @@
 import sys
-
-
 try:
     from pydantic import BaseModel
 except (ImportError,ModuleNotFoundError):
-    print("Pydantic is still missing")
+    print("💡 Please run the make install to ensure all the dependencies are available because this project must be with all of them")
     sys.exit()
 
 class ReturnType(BaseModel):

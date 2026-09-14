@@ -1,0 +1,31 @@
+[
+  {
+    "prompt": "What is the sum of 2 and 4 and 45?",
+    "name": "fn_add_numbers",
+    "parameters": {
+      "a": 2,
+      "b": 4,
+      "c": 45
+    }
+  },
+  {
+    "prompt": "What is the sum of 265 and 345?",
+    "name": "fn_add_numbers",
+    "parameters": {
+      "a": 265,
+      "b": 345
+    }
+  },
+  {
+    "prompt": "Who is safiraj the man who study at 42 school",
+    "name": "none",
+    "parameters": {}
+  },
+  {
+    "prompt": "reverse the string 'hello'",
+    "name": "fn_reverse_string",
+    "parameters": {
+      "s": "hello"
+    }
+  }
+]

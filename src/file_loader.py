@@ -15,14 +15,15 @@ def load_function_definition(path: str) -> list[FunctionModel] | None:
             return None
         function_def = json.loads(content)
         return[FunctionModel(**item) for item in function_def]
-    except FileNotFoundError:
+    except (FileNotFoundError, PermissionError):
         print("Error in opening file or unexistant file")
+        print("It might be denied fom opening the  file, by means it was not given the permission")
         return None
     except json.JSONDecodeError:
         print("The file is not in json format")
         return None
     except ValidationError:
-        print("Invalid function definition")
+        print("Invalid function definition due to its wrong format")
         return None
     except RuntimeError:
         print("An error was occured in the function definition")
@@ -37,7 +38,7 @@ def load_prompt(path: str) -> list[PromptModel] | None:
             return None
         prompt = json.loads(content)
         return[PromptModel(**item) for item in prompt]
-    except FileNotFoundError:
+    except (FileNotFoundError, PermissionError):
         print("Error in opening file or unexistant file")
         return None
     except json.JSONDecodeError:
