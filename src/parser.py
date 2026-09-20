@@ -1,13 +1,20 @@
-from pathlib import Path
+"""Provide command-line argument parsing."""
 import argparse
 
-#base_dir = Path(__file__).resolve().parent.parent
 
 def parser_config() -> argparse.Namespace:
+    """
+    Configure and parse the command-line arguments.
+
+    Returns:
+        The parsed command-line arguments.
+    """
     parser = argparse.ArgumentParser(
-        description = "Translate the prompt from natural language into a function call..."
+        description=(
+            "Translate the prompt from natural "
+            "language into a function call..."
+        )
     )
-    
     parser.add_argument(
         "--input",
         type=str,

@@ -24,7 +24,7 @@ debug:
 	@HF_HOME=$(GOINFRE_CACHE)/huggingface \
 		UV_CACHE_DIR=$(GOINFRE_CACHE)/uv \
 		UV_PROJECT_ENVIRONMENT=$(GOINFRE_VENV) \
-		uv run $(PYTHON) -m pdb -m src
+		uv run --no-sync $(PYTHON) -m pdb -m src
 
 clean:
 	@rm -rf __pycache__

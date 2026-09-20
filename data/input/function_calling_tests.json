@@ -1,14 +1,8 @@
 [
   {
-    "prompt": "What is the sum of 2 and 4 and 45?"
+    "prompt": "Do nothing with this prompt"
   },
   {
-    "prompt": "What is the sum of 265 and 345?"
-  },
-  {
-    "prompt": "Who is safiraj the man who study at 42 school"
-  },
-  {
-    "prompt": "reverse the string 'hello'"
+    "prompt": "add three numbers"
   }
 ]

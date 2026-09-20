@@ -1,10 +1,11 @@
+"""Provide a loading animation while processing a prompt."""
 import sys
 import time
 import threading
 
 
-def loading_animation(stop_event):
-    #frames = ["⏳", "🔄", "⌛", "🔄"]
+def loading_animation(stop_event: threading.Event) -> None:
+    """Display a loading animation until the stop event is set."""
     frames = ["🌑", "🌒", "🌓", "🌔", "🌕", "🌖", "🌗", "🌘"]
     i = 0
 
