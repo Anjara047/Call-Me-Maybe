@@ -157,3 +157,13 @@ For example:
 
 For example, the prompt `Add 5 and 10` can be matched with `fn_add_numbers`, while `Reverse "hello"` can be matched with `fn_reverse_string`.
 
+This is an example of the function calling
+```json
+  {
+    "prompt": "Add two random numbers"
+  },
+  {
+    "prompt": "Pick and calculate the square root of a number"
+  }
+  ```
+

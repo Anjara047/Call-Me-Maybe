@@ -2,6 +2,7 @@
 import json
 import sys
 import time
+from typing import Any
 
 from src.models.valid_parameters import casting_parameters
 from src.parser import parser_config
@@ -11,6 +12,7 @@ from src.file_loader import save_results
 from src.constrained_decoding import build_system_prompt
 from src.function_calling import initialize_model
 from src.function_calling import generate_response
+from src.animation import heading
 
 
 def main() -> None:
@@ -24,35 +26,7 @@ def main() -> None:
     Returns:
         None.
     """
-#    heading = """
-#   \t\t\t\t ██╗    ██╗███████╗██╗      ██████╗   ██████╗  ███╗   ███╗███████╗
-#   \t\t\t\t ██║    ██║██╔════╝██║     ██╔════╝  ██╔═══██╗ ████╗ ████║██╔════╝
-#   \t\t\t\t ██║ █╗ ██║█████╗  ██║     ██║       ██║   ██║ ██╔████╔██║█████╗
-#   \t\t\t\t ██║███╗██║██╔══╝  ██║     ██║       ██║   ██║ ██║╚██╔╝██║██╔══╝
-#   \t\t\t\t ╚███╔███╔╝███████╗███████╗╚██████╗  ╚██████╔╝ ██║ ╚═╝ ██║███████╗
-#   \t\t\t\t  ╚══╝╚══╝ ╚══════╝╚══════╝ ╚═════╝   ╚═════╝  ╚═╝     ╚═╝╚══════╝
-#
-#   \t\t\t\t         ████████╗ ██████╗     ███╗   ███╗██╗   ██╗
-#   \t\t\t\t         ╚══██╔══╝██╔═══██╗    ████╗ ████║╚██╗ ██╔╝
-#   \t\t\t\t            ██║   ██║   ██║    ██╔████╔██║ ╚████╔╝
-#   \t\t\t\t            ██║   ██║   ██║    ██║╚██╔╝██║  ╚██╔╝
-#   \t\t\t\t            ██║   ╚██████╔╝    ██║ ╚═╝ ██║   ██║
-#   \t\t\t\t            ╚═╝    ╚═════╝     ╚═╝     ╚═╝   ╚═╝
-#   \t\t\t\t     ██████╗  █████╗ ██╗     ██╗         ███╗   ███╗███████╗
-#   \t\t\t\t     ██╔════╝██╔══██╗██║     ██║         ████╗ ████║██╔════╝
-#   \t\t\t\t     ██║     ███████║██║     ██║         ██╔████╔██║█████╗
-#   \t\t\t\t     ██║     ██╔══██║██║     ██║         ██║╚██╔╝██║██╔══╝
-#   \t\t\t\t     ╚██████╗██║  ██║███████╗███████╗    ██║ ╚═╝ ██║███████╗
-#   \t\t\t\t      ╚═════╝╚═╝  ╚═╝╚══════╝╚══════╝    ╚═╝     ╚═╝╚══════╝
-#
-#   \t\t\t\t          ███╗   ███╗ █████╗ ██╗   ██╗██████╗ ███████╗
-#   \t\t\t\t          ████╗ ████║██╔══██╗╚██╗ ██╔╝██╔══██╗██╔════╝
-#   \t\t\t\t          ██╔████╔██║███████║ ╚████╔╝ ██████╔╝█████╗
-#   \t\t\t\t          ██║╚██╔╝██║██╔══██║  ╚██╔╝  ██╔══██╗██╔══╝
-#   \t\t\t\t          ██║ ╚═╝ ██║██║  ██║   ██║   ██████╔╝███████╗
-#   \t\t\t\t          ╚═╝     ╚═╝╚═╝  ╚═╝   ╚═╝   ╚═════╝ ╚══════╝
-#    """
-    #print(heading)
+    heading()
     print("🚀 Starting...")
     args = parser_config()
 
@@ -74,72 +48,26 @@ def main() -> None:
         print("So up to now, the program was not launched yet")
         sys.exit()
 
-    #print("📂 Building system prompt ...")
+    print("📂 Building system prompt ...")
     system = build_system_prompt(function)
-#
-    #print(f"🔥 Loading model: {args.model}")
-    #try:
-    #    model = Small_LLM_Model(model_name=args.model)
-    #except OSError:
-    #    print(f"Model: {args.model} not found or failed to download")
-    #    print("This is the most probably due to unsufficient Memory")
-    #    sys.exit()
-#
-    #vocab = load_vocabulary(model)
-    #valid_id = build_json_valid_id(vocab)
-
     model, valid_id = initialize_model(args.model)
 
-    final_result = []
     all_result = []
-    start_time = time.time()
-
+    dup_prompt: dict[str, dict[str, Any] | None] = {}
+    start_time = time.perf_counter()
     for promp in prompt:
         user_prompt = promp.prompt
-        #all_prompt = f"{system}\nUser prompt: {user_prompt}\nAssistant: "
-        #input_ids = model.encode(all_prompt)
-        #generated_ids = input_ids[0].tolist()
-#
-        #all_generated_id = []
-        #excepted_json = None
-        #parsed = None
-        #all_generated_id.extend(model.encode('{"name" : "')[0].tolist())
-        #stop_event = threading.Event()
-        #animation_thread = threading.Thread(
-        #    target=loading_animation,
-        #    args=(stop_event,)
-        #)
-        #animation_thread.start()
-        #try:
-        #    while not excepted_json:
-        #        logits = model.get_logits_from_input_ids(
-        #            generated_ids + all_generated_id)
-        #        next_id = get_best_valid_token(logits, valid_id)
-        #        if len(all_generated_id) > 200:
-        #            break
-        #        all_generated_id.append(next_id)
-        #        generated_text = model.decode(all_generated_id)
-        #        excepted_json = extract_only_expected(generated_text)
-        #        if excepted_json:
-        #            try:
-        #                parsed = json.loads(excepted_json)
-        #                break
-        #            except Exception:
-        #                pass
-        #    if parsed is None:
-        #        print("\n⚠️ Could not generate valid", end="")
-        #        print(" JSON within the token limit")
-        #finally:
-        #    stop_event.set()
-        #animation_thread.join()
-        parsed = generate_response(
-            model,
-            valid_id,
-            system,
-            user_prompt
-        )
-        #print("\n🔍 Generated text:")
-        #print(model.decode(all_generated_id))
+        if user_prompt in dup_prompt:
+            parsed = dup_prompt[user_prompt]
+            #print("♻️ Reusing cached response")
+        else:
+            parsed = generate_response(
+                model,
+                valid_id,
+                system,
+                user_prompt
+            )
+            dup_prompt[user_prompt] = parsed
         print(f"➡️ User prompt: {user_prompt}")
         print("✅ Done: Yes, prompt generated")
         print("👇Here is the result:")
@@ -172,19 +100,15 @@ def main() -> None:
         else:
             result = all_result[-1]
             print(json.dumps(result, indent=4))
-    total_time = (time.time() - start_time) / 60
-#    os.makedirs(os.path.dirname(args.output), exist_ok=True)
-#    try:
-#        with open(args.output, 'w') as file:
-#            json.dump(all_result, file, ensure_ascii=False, indent=2)
-#        print(f"\n╰┈➤ˎˊ˗ Result saved to : {args.output}")
-#        print(f"🕐 It takes {total_time:.2f}", end="")
-#        print(" minutes to generate the total of your prompt")
-#        each_prompt = total_time / len(prompt) * 60
-#        print(f"📈 Time average for each prompt takes {each_prompt:.2f} second")
-#    except (PermissionError):
-#        print("⚠️You denied the permission from the file to save the result")
-#        print("So the result is not saved anywhere")
+    total_time = (time.perf_counter() - start_time) / 60
+    print(f"🕐 Total time: {total_time:.2f} minutes")
+    if len(prompt) > 0:
+        each_prompt = total_time / len(prompt) * 60
+        print(
+            f"📈 Average time per prompt: "
+            f"{each_prompt:.2f} seconds"
+        )
+
     save_results(args.output, all_result)
 
 

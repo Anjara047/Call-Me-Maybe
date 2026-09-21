@@ -20,16 +20,14 @@ def cast_parameter(
         if isinstance(value, (int, float, str)):
             try:
                 return int(value)
-            except (ValueError, TypeError) as e:
-                print(e)
+            except (ValueError, TypeError):
                 return None
             return None
     if expected_type == "float":
         if isinstance(value, (int, float, str)):
             try:
                 return float(value)
-            except (ValueError, TypeError) as e:
-                print(e)
+            except (ValueError, TypeError):
                 return None
             return None
     if expected_type == "number":

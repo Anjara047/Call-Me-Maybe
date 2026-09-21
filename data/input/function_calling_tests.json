@@ -1,8 +1,10 @@
-[
-  {
-    "prompt": "Do nothing with this prompt"
+[{
+    "prompt": "Add infinite and infinite"
   },
   {
-    "prompt": "add three numbers"
+    "prompt": "Pick and calculate the square root of a number"
+  },
+  {
+    "prompt": "Pick and calculate the square root of a number"
   }
 ]

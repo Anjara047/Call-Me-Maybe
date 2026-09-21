@@ -33,7 +33,8 @@ def load_function_definition(path: str) -> list[FunctionModel] | None:
         print(" by means it was not given the permission")
         return None
     except json.JSONDecodeError:
-        print("The file that contains the function definition is not in json format")
+        print("The file that contains", end="")
+        print(" the function definition is not in json format")
         return None
     except ValidationError:
         print("Invalid function definition due to its wrong format")
@@ -95,7 +96,6 @@ def save_results(
     """
     try:
         os.makedirs(os.path.dirname(path), exist_ok=True)
-
         with open(path, 'w') as file:
             json.dump(
                 results,
@@ -107,5 +107,3 @@ def save_results(
     except PermissionError:
         print("⚠️You denied the permission from the file to save the result")
         print("So the result is not saved anywhere")
-
-

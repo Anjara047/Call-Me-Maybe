@@ -112,6 +112,34 @@ def choose_function(functions: Any) -> str:
     return "\n".join(func)
 
 
+def build_rules() -> list[str]:
+    """Build all the system rules for the llm."""
+    rules: list[str] = []
+
+    rule = (
+        "Select the function that best matches the user's intent.",
+        "Use the available function names and descriptions."
+    )
+    definition = (
+        "Generate arguments according,"
+        "to the selected function's definition"
+    )
+    over_param = (
+        "Use only the arguments defined by the selected function."
+        "When multiple values are provided, use the values needed"
+        "by the function's defined parameters."
+    )
+    no_matches = (
+        "If no available function matches the user's intent,"
+        "return the name 'None' with empty arguments."
+    )
+    rules.extend(rule)
+    rules.append(definition)
+    rules.append(over_param)
+    rules.append(no_matches)
+    return rules
+
+
 def build_system_prompt(functions: Any) -> str:
     """
     Build the system prompt used to select a matching function.
@@ -123,22 +151,14 @@ def build_system_prompt(functions: Any) -> str:
         The system prompt containing the function selection rules.
     """
     available_functions = choose_function(functions)
-
+    rules = build_rules()
     lines = [
-        "Select the function that best matches the user's intent.",
-        "Use the available function names and descriptions.",
-        "The selected function must match the requested operation.",
-        "Generate arguments according to the selected function's definition.",
-        "Use only the arguments defined by the selected function.",
-        "When multiple values are provided, use the values",
-        "needed by the function's defined parameters.",
-        "If no available function matches the user's intent,",
-        "return the name 'None' with empty arguments.",
+        *rules,
+        "The selected function should match the requested operation.",
         "",
         "Available functions:",
         available_functions,
         "",
         'Output valid JSON: {"name": "<fn>", "args": {<args>}}'
     ]
-
     return "\n".join(lines)

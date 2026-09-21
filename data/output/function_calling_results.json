@@ -1,16 +1,24 @@
 [
   {
-    "prompt": "Do nothing with this prompt",
-    "name": "None",
-    "parameters": {}
-  },
-  {
-    "prompt": "add three numbers",
+    "prompt": "Add infinite and infinite",
     "name": "fn_add_numbers",
     "parameters": {
-      "a": 1,
-      "b": 2,
-      "c": 3
+      "a": 1000000,
+      "b": 1000000
+    }
+  },
+  {
+    "prompt": "Pick and calculate the square root of a number",
+    "name": "fn_get_square_root",
+    "parameters": {
+      "a": 42
+    }
+  },
+  {
+    "prompt": "Pick and calculate the square root of a number",
+    "name": "fn_get_square_root",
+    "parameters": {
+      "a": 42
     }
   }
 ]
