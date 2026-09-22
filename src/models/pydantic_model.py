@@ -1,5 +1,6 @@
 """Define Pydantic models for function calling."""
 import sys
+from typing import Any
 try:
     from pydantic import BaseModel, ConfigDict
 except (ImportError, ModuleNotFoundError):
@@ -63,3 +64,13 @@ class PromptModel(BaseModel):
 
     model_config = config
     prompt: str
+
+
+class OutputModel(BaseModel):
+    """
+    Define the structure of the output.
+    """
+
+    prompt: str
+    name: str
+    parameters: dict[str, Any]

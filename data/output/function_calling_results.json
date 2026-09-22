@@ -1,24 +1,75 @@
 [
   {
-    "prompt": "Add infinite and infinite",
+    "prompt": "What is the sum of 2 and 3?",
     "name": "fn_add_numbers",
     "parameters": {
-      "a": 1000000,
-      "b": 1000000
+      "a": 2,
+      "b": 3
     }
   },
   {
-    "prompt": "Pick and calculate the square root of a number",
-    "name": "fn_get_square_root",
+    "prompt": "What is the sum of 265 and 345?",
+    "name": "fn_add_numbers",
     "parameters": {
-      "a": 42
+      "a": 265,
+      "b": 345
     }
   },
   {
-    "prompt": "Pick and calculate the square root of a number",
-    "name": "fn_get_square_root",
+    "prompt": "Greet shrek",
+    "name": "fn_greet",
     "parameters": {
-      "a": 42
+      "name": "shrek"
+    }
+  },
+  {
+    "prompt": "Greet john",
+    "name": "fn_greet",
+    "parameters": {
+      "name": "john"
+    }
+  },
+  {
+    "prompt": "Reverse the string 'hello'",
+    "name": "fn_greet",
+    "parameters": {
+      "name": "f"
+    }
+  },
+  {
+    "prompt": "Reverse the string 'world'",
+    "name": "fn_greet",
+    "parameters": {
+      "name": "f"
+    }
+  },
+  {
+    "prompt": "What is the square root of 16?",
+    "name": "None",
+    "parameters": {}
+  },
+  {
+    "prompt": "Calculate the square root of 144",
+    "name": "None",
+    "parameters": {}
+  },
+  {
+    "prompt": "Replace all numbers in \"Hello 34 I'm 233 years old\" with NUMBERS",
+    "name": "None",
+    "parameters": {}
+  },
+  {
+    "prompt": "Replace all vowels in 'Programming is fun' with asterisks",
+    "name": "fn_substitute_string_with_regex",
+    "parameters": {
+      "source_string": "Programming is fun"
+    }
+  },
+  {
+    "prompt": "Substitute the word 'cat' with 'dog' in 'The cat sat on the mat with another cat'",
+    "name": "fn_substitute_string_with_regex",
+    "parameters": {
+      "source_string": "The cat sat on the mat with another cat"
     }
   }
 ]

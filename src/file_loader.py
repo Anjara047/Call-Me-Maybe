@@ -1,8 +1,9 @@
 """Provide functions for reading JSON configuration files."""
 import json
-from src.models.pydantic_model import FunctionModel, PromptModel
 import sys
 import os
+from typing import Any
+from src.models.pydantic_model import FunctionModel, PromptModel
 try:
     from pydantic import ValidationError
 except ModuleNotFoundError:
@@ -80,10 +81,7 @@ def load_prompt(path: str) -> list[PromptModel] | None:
         return None
 
 
-def save_results(
-    path: str,
-    results: list[dict]
-) -> None:
+def save_results(path: str,results: list[dict[str, Any]]) -> None:
     """
     Save function-calling results to a JSON file.
 
@@ -97,12 +95,7 @@ def save_results(
     try:
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, 'w') as file:
-            json.dump(
-                results,
-                file,
-                ensure_ascii=False,
-                indent=2
-            )
+            json.dump(results, file, ensure_ascii=False, indent=2)
         print(f"\n╰┈➤ˎˊ˗ Result saved to : {path}")
     except PermissionError:
         print("⚠️You denied the permission from the file to save the result")

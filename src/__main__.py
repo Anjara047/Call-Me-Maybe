@@ -3,7 +3,7 @@ import json
 import sys
 import time
 from typing import Any
-
+from src.models.pydantic_model import OutputModel
 from src.models.valid_parameters import casting_parameters
 from src.parser import parser_config
 from src.file_loader import load_function_definition
@@ -26,11 +26,11 @@ def main() -> None:
     Returns:
         None.
     """
-    heading()
+    #heading()
     print("🚀 Starting...")
-    args = parser_config()
+    parameter = parser_config()
 
-    function = load_function_definition(args.functions_definition)
+    function = load_function_definition(parameter.functions_definition)
     if function is None:
         print("💡 Please fix the format in functions", end="")
         print(" definition due to its wrong format")
@@ -39,7 +39,7 @@ def main() -> None:
         sys.exit()
     function_name = [fn.name for fn in function]
 
-    prompt = load_prompt(args.input)
+    prompt = load_prompt(parameter.input)
     if prompt is None:
         print("💡 Please fix the format in function", end="")
         print(" calling due to its wrong format")
@@ -50,20 +50,22 @@ def main() -> None:
 
     print("📂 Building system prompt ...")
     system = build_system_prompt(function)
-    model, valid_id = initialize_model(args.model)
+    model, valid_id, vocab = initialize_model(parameter.model)
 
     all_result = []
+    all_generated_result = []
     dup_prompt: dict[str, dict[str, Any] | None] = {}
     start_time = time.perf_counter()
     for promp in prompt:
         user_prompt = promp.prompt
         if user_prompt in dup_prompt:
             parsed = dup_prompt[user_prompt]
-            #print("♻️ Reusing cached response")
         else:
             parsed = generate_response(
                 model,
                 valid_id,
+                vocab,
+                function,
                 system,
                 user_prompt
             )
@@ -72,25 +74,26 @@ def main() -> None:
         print("✅ Done: Yes, prompt generated")
         print("👇Here is the result:")
         if parsed is None or parsed.get("name") not in function_name:
-            parsed = {"name": "None", "args": {}}
+            parsed = {"name": "None", "arguments": {}}
         else:
             for fn in function:
                 if fn.name == parsed["name"]:
                     casted_args = casting_parameters(
-                        parsed.get("args", {}),
+                        parsed.get("parameters", {}),
                         fn.parameters
                     )
                     if casted_args is None:
-                        parsed = {"name": "None", "args": {}}
+                        parsed = {"name": "None", "arguments": {}}
                     else:
-                        parsed["args"] = casted_args
+                        parsed["arguments"] = casted_args
                     break
 
-        all_result.append({
+        rresult = OutputModel.model_validate({
             "prompt": user_prompt,
             "name": parsed.get("name", "None"),
-            "parameters": parsed.get("args", {})
+            "parameters": parsed.get("arguments", {})
         })
+        all_result.append(rresult.model_dump())
 
         if parsed.get("name", "None") == "None":
             print("\n\t➠ Unfortunately,", end="")
@@ -108,8 +111,7 @@ def main() -> None:
             f"📈 Average time per prompt: "
             f"{each_prompt:.2f} seconds"
         )
-
-    save_results(args.output, all_result)
+    save_results(parameter.output, all_result)
 
 
 if __name__ == "__main__":
@@ -126,9 +128,9 @@ if __name__ == "__main__":
         print("That means the result", end="")
         print(" was not generateed so it was not saved anywhere")
         sys.exit(0)
-    except Exception as error:
-        print(f"Unexpected error: {error}")
-        sys.exit(0)
+    #except Exception as error:
+    #    print(f"Unexpected error: {error}")
+    #    sys.exit(0)
     finally:
         print("\n\t\t", "=" * 8)
         print("\n\nThe program touches its end\n".upper())

@@ -16,7 +16,7 @@ def loading_animation(stop_event: threading.Event) -> None:
         sys.stdout.flush()
         i += 1
         time.sleep(0.1)
-    sys.stdout.write("\r" + " " * 40 + "\r")
+    sys.stdout.write("\r" + " " * 5 + "\r")
     sys.stdout.flush()
 
 

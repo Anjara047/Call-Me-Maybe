@@ -84,6 +84,6 @@ def casting_parameters(
         expected_type = parameters[name].type
         casted_value = cast_parameter(value, expected_type)
         if casted_value is None:
-            return None
+            pass
         result[name] = casted_value
     return result
