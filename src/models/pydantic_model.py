@@ -2,7 +2,7 @@
 import sys
 from typing import Any
 try:
-    from pydantic import BaseModel, ConfigDict
+    from pydantic import BaseModel, ConfigDict, Field
 except (ImportError, ModuleNotFoundError):
     print("💡 Please run the make install to ensure", end="")
     print(" all the dependencies are available because", end="")
@@ -48,8 +48,8 @@ class FunctionModel(BaseModel):
     """
 
     model_config = config
-    name: str
-    description: str
+    name: str = Field(min_length=3, strict=True)
+    description: str = Field(min_length=7)
     parameters: dict[str, Parameter]
     returns: ReturnType
 
@@ -63,7 +63,7 @@ class PromptModel(BaseModel):
     """
 
     model_config = config
-    prompt: str
+    prompt: str = Field(min_length=5)
 
 
 class OutputModel(BaseModel):
@@ -74,3 +74,24 @@ class OutputModel(BaseModel):
     prompt: str
     name: str
     parameters: dict[str, Any]
+
+
+class FunctionNameModel(BaseModel):
+    func: list[FunctionModel]
+    names: list[str] = []
+
+    def model_post_init(self, __context: Any) -> None:
+        self.names = [fn.name for fn in self.func]
+
+
+class FunctionParameterModel(BaseModel):
+    func: list[FunctionModel]
+    parameters: list[dict[str, dict[str, Any]]] = Field(default_factory=list)
+
+    def model_post_init(self, __context: Any) -> None:
+        for fn in self.func:
+            self.parameters.append({
+                fn.name: {
+                    name: param.type for name, param in fn.parameters.items()
+                }
+            })
