@@ -75,11 +75,40 @@ def get_best_valid_token_func(
     )
     return highest_prob
 
-
 def get_best_valid_token_param(
-        logits: list[float], valid_param_id: set[int]) -> int:
-    next_param_id = max(valid_param_id, key=lambda i: logits[i])
-    return next_param_id
+    logits: list[float],
+    valid_param_id: set[int],
+    parameter_type: str,
+    token_id_to_text: dict[int, str],
+    prompt_token_id: set[int],
+) -> int:
+    """Choose the highest-probability valid parameter token."""
+
+    masked_logits = [float("-inf")] * len(logits)
+
+    for token_id in valid_param_id:
+        token = token_id_to_text.get(token_id, "")
+
+        if parameter_type == "integer":
+            allowed = token.strip().isdigit()
+
+        elif parameter_type in ("number", "float"):
+            value = token.strip()
+            allowed = value.replace(".", "", 1).isdigit()
+
+        elif parameter_type == "bool":
+            allowed = token.strip().lower() in ("true", "false")
+
+        else:
+            allowed = token_id in prompt_token_id
+
+        if allowed:
+            masked_logits[token_id] = logits[token_id]
+
+    return max(
+        range(len(masked_logits)),
+        key=lambda i: masked_logits[i]
+    )
 
 
 def build_json_valid_id(vocab: Any, function_name: list[str]) -> set[int]:
@@ -140,33 +169,19 @@ def choose_function(functions: Any) -> str:
         func.append(f"- {fn.name}({params}): {fn.description}")
     return "\n".join(func)
 
-
+    
 def build_rules() -> list[str]:
-    """Build all the system rules for the llm."""
+    """Build all the system rules for the LLM."""
     rules: list[str] = []
-
     rule = (
-        "Select the function that best matches the user's intent.",
-        "Use the available function names and descriptions."
-    )
-
-    definition = (
-        "Generate arguments according,"
-        "to the selected function's definition"
-    )
-    number_rule = (
-        "When a parameter type is number, integer, or float, "
-        "convert number words from the user's request into numeric values."
-    )
-    over_param = (
-        "Use only the arguments defined by the selected function."
-        "When multiple values are provided, use the values needed"
-        "by the function's defined parameters."
+        "Select exactly one function that best matches the user's requested operation.",
+        "Use the function names and descriptions to determine the user's intent.",
+        "Match the requested operation, not just the parameter names or parameter types.",
+        "Choose the function whose description most directly corresponds to the user's request.",
+        "Do not select a function only because its parameters have matching types.",
+        "Do not execute the function or calculate its result.",
     )
     rules.extend(rule)
-    rules.append(definition)
-    rules.append(number_rule)
-    rules.append(over_param)
     return rules
 
 
@@ -191,41 +206,3 @@ def build_system_prompt(functions: Any) -> str:
         "",
     ]
     return "\n".join(lines)
-
-
-def get_current_function(
-    generated_text: str,
-    functions: Any
-) -> Any | None:
-    """Find the function selected by the generated JSON."""
-    for function in functions:
-        if f'"name" : "{function.name}"' in generated_text:
-            return function
-    return None
-
-
-def is_parameter_position(
-    generated_text: str
-) -> bool:
-    """
-    Check whether the decoder is currently expecting
-    a parameter name.
-    """
-    if '"arguments": {' in generated_text:
-        last_part = generated_text.split(
-            '"arguments": {',
-            1
-        )[1]
-        if last_part.count('"') % 2 == 0:
-            if not last_part.endswith(':'):
-                return True
-    return False
-
-
-def build_parameter_tokens(model: Small_LLM_Model,
-                           parameter_type: str) -> set[int]:
-    parameter_id: set[int] = set()
-    if parameter_type == "number":
-        token_ids = model.encode("0123456789.-")[0].tolist()
-        parameter_id.update(token_ids)
-    return parameter_id

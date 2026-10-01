@@ -77,6 +77,8 @@ def main() -> None:
             dup_prompt[user_prompt] = parsed
             # print("DEBUG PARSED:", parsed)
         casted_args: dict[str, object] = {}
+        if parsed is None:
+            continue
         # if parsed is None or parsed.get("name") not in function_name:
         #    parsed = {"name": "", "arguments": {}}
         # else:

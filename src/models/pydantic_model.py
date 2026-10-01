@@ -2,7 +2,7 @@
 import sys
 from typing import Any
 try:
-    from pydantic import BaseModel, ConfigDict, Field
+    from pydantic import BaseModel, ConfigDict, Field, create_model
 except (ImportError, ModuleNotFoundError):
     print("💡 Please run the make install to ensure", end="")
     print(" all the dependencies are available because", end="")
@@ -95,3 +95,27 @@ class FunctionParameterModel(BaseModel):
                     name: param.type for name, param in fn.parameters.items()
                 }
             })
+
+
+def BuildParameterModel(function: FunctionModel) -> type[BaseModel]:
+    type_maping: dict[str, Any] = {
+        "string": str,
+        "number": int | float,
+        "integer": int,
+        "float": float,
+        "bool": bool,
+    }
+    fields: dict[str, tuple[Any, Any]] = {}
+    for name, parameter in function.parameters.items():
+        parameter_type = type_maping.get(parameter.type)
+        #print("NAME:", name)
+        #print("DECLARED TYPE:", parameter.type)
+        #print("PYTHON TYPE:", parameter_type)
+        if parameter_type is None:
+            raise ValueError(f"Unsupported parameter type: {parameter.type}")
+            continue
+        fields[name] = (parameter_type)
+    return create_model(
+        f"{function.name}Parameters",
+        **fields
+    )
