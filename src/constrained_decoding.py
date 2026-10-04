@@ -83,28 +83,20 @@ def get_best_valid_token_param(
     prompt_token_id: set[int],
 ) -> int:
     """Choose the highest-probability valid parameter token."""
-
     masked_logits = [float("-inf")] * len(logits)
-
     for token_id in valid_param_id:
         token = token_id_to_text.get(token_id, "")
-
         if parameter_type == "integer":
             allowed = token.strip().isdigit()
-
         elif parameter_type in ("number", "float"):
             value = token.strip()
             allowed = value.replace(".", "", 1).isdigit()
-
         elif parameter_type == "bool":
             allowed = token.strip().lower() in ("true", "false")
-
         else:
             allowed = token_id in prompt_token_id
-
         if allowed:
             masked_logits[token_id] = logits[token_id]
-
     return max(
         range(len(masked_logits)),
         key=lambda i: masked_logits[i]

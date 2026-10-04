@@ -104,11 +104,11 @@ def param_generation(
 def generate_response(
     model: Any,
     valid_id: set[int],
-    valid_param_id: set[int]
     system: str,
     user_prompt: str,
     functions: Any,
     token_id_to_text: dict[int, str],
+    valid_param_id: set[int]
 ) -> dict[str, Any] | None:
     """Generate a JSON response for one user prompt."""
     all_prompt = f"{system}\nUser prompt: {user_prompt}\nAssistant: "
@@ -162,11 +162,11 @@ def generate_response(
         params = param_generation(
             model,
             input_ids,
-            valid_param_id,
             selected_model,
             user_prompt,
             token_id_to_text,
             param_model,
+            valid_param_id
         )
         if params is None:
             return None

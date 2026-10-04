@@ -73,7 +73,8 @@ def main() -> None:
                 system,
                 user_prompt,
                 function,
-                token_id_to_text)
+                token_id_to_text,
+                valid_id)
             dup_prompt[user_prompt] = parsed
             # print("DEBUG PARSED:", parsed)
         casted_args: dict[str, object] = {}
