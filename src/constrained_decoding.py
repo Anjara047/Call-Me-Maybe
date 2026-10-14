@@ -75,6 +75,7 @@ def get_best_valid_token_func(
     )
     return highest_prob
 
+
 def get_best_valid_token_param(
     logits: list[float],
     valid_param_id: set[int],
@@ -84,23 +85,31 @@ def get_best_valid_token_param(
 ) -> int:
     """Choose the highest-probability valid parameter token."""
     masked_logits = [float("-inf")] * len(logits)
-    for token_id in valid_param_id:
+    for token_id in range(len(logits)):
         token = token_id_to_text.get(token_id, "")
+        if token.strip() == "":
+            #masked_logits[token_id] = logits[token_id]
+            continue
         if parameter_type == "integer":
             allowed = token.strip().isdigit()
         elif parameter_type in ("number", "float"):
             value = token.strip()
             allowed = value.replace(".", "", 1).isdigit()
+        
         elif parameter_type == "bool":
             allowed = token.strip().lower() in ("true", "false")
         else:
             allowed = token_id in prompt_token_id
+            #allowed = True
         if allowed:
             masked_logits[token_id] = logits[token_id]
-    return max(
+    best_id = max(
         range(len(masked_logits)),
-        key=lambda i: masked_logits[i]
+        key=lambda i: masked_logits[i],
     )
+    if masked_logits[best_id] == float("-inf"):
+        return -1
+    return best_id
 
 
 def build_json_valid_id(vocab: Any, function_name: list[str]) -> set[int]:

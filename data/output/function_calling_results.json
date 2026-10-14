@@ -1,5 +1,13 @@
 [
   {
+    "prompt": "What is the sum of 5 cat and 4 dog and 4?",
+    "name": "fn_add_numbers",
+    "parameters": {
+      "a": 5,
+      "b": 4
+    }
+  },
+  {
     "prompt": "What is the sum of 265 and 345?",
     "name": "fn_add_numbers",
     "parameters": {
@@ -36,6 +44,13 @@
     }
   },
   {
+    "prompt": "What is the square root of sixteen?",
+    "name": "fn_get_square_root",
+    "parameters": {
+      "a": 16
+    }
+  },
+  {
     "prompt": "Calculate the square root of 144",
     "name": "fn_get_square_root",
     "parameters": {
@@ -48,7 +63,7 @@
     "parameters": {
       "source_string": "Hello 34 I'm 233 years old",
       "regex": "([0-9]+)",
-      "replacement": "X"
+      "replacement": "NUMBER"
     }
   },
   {

@@ -41,6 +41,52 @@ def initialize_model(
     valid_id = build_json_valid_id(vocab, function_name)
     return model, valid_id, token_id_to_text
 
+#
+#def param_generation(
+#    model: Any,
+#    generated_ids: list[int],
+#    function: FunctionModel,
+#    prompt: str,
+#    token_id_to_text: dict[int, str],
+#    param_model: type[BaseModel],
+#    valid_param_id: set[int],
+#) -> dict[str, Any] | None:
+#    """Extract parameter values from the user's request."""
+#    parameters = function.parameters
+#    description = "\n".join(
+#        f"{name}: {param.type}"
+#        for name, param in parameters.items()
+#    )
+#    param_prompt = (
+#        f"User request: {prompt}\n"
+#        f"Function: {function.name}\n"
+#        f"Function description: {function.description}\n"
+#        f"Parameters:\n{description}\n"
+#        "Extract only the requested parameter values.\n"
+#        "Return one JSON object with the parameter names as keys.\n"
+#        "Do not calculate results or add explanations.\n"
+#        "JSON:\n"
+#    )
+#    input_ids = model.encode(param_prompt)[0].tolist()
+#    generated: list[int] = []
+#
+#    for _ in range(100):
+#        logits = model.get_logits_from_input_ids(input_ids + generated)
+#        next_id = max(range(len(logits)), key=lambda i: logits[i])
+#        token = token_id_to_text.get(next_id, "")
+#
+#        if not token:
+#            break
+#
+#        generated.append(next_id)
+#        text = model.decode(generated).strip()
+#
+#        try:
+#            result = json.loads(text)
+#            return param_model.model_validate(result).model_dump()
+#        except (json.JSONDecodeError, ValueError):
+#            continue
+#    return None
 
 def param_generation(
     model: Any,
@@ -51,54 +97,46 @@ def param_generation(
     param_model: type[BaseModel],
     valid_param_id: set[int],
 ) -> dict[str, Any] | None:
-    """Extract parameter values from the user's request."""
-
+    """Extract and validate parameter values from a user request."""
     parameters = function.parameters
     description = "\n".join(
-        f"{name}: {param.type}"
+        f"- {name}: {param.type}"
         for name, param in parameters.items()
     )
 
     param_prompt = (
         f"Request: {prompt}\n"
+        f"Function: {function.name} — {function.description}\n"
         f"Parameters:\n{description}\n"
-        "Values:\n"
+        "Extract the correct parameter values from the request. "
+        "Use the function description to understand each parameter. "
+        "Never use the function name as a parameter value. "
+        "For regex parameters, provide the pattern matching the "
+        "requested category, not the example matches. "
+        "Do not calculate the function result. "
+        "Return only one complete JSON object using the exact "
+        "parameter names as keys. No explanations.\n"
+        "JSON:"
     )
-
     input_ids = model.encode(param_prompt)[0].tolist()
-    prompt_ids = set(model.encode(prompt)[0].tolist())
     generated: list[int] = []
-    values: list[str] = []
-
-    for parameter in parameters.values():
-        value = ""
-
-        while True:
-            logits = model.get_logits_from_input_ids(
-                input_ids + generated
-            )
-            next_id = get_best_valid_token_param(
-                logits,
-                valid_param_id,
-                parameter.type,
-                token_id_to_text,
-                prompt_ids,
-            )
-            token = token_id_to_text.get(next_id, "")
-
-            if "\n" in token:
-                break
-            generated.append(next_id)
-            value += token
-
-        values.append(value.strip())
-
-    result = dict(zip(parameters, values))
-
-    try:
-        return param_model.model_validate(result).model_dump()
-    except Exception:
-        return None
+    for _ in range(100):
+        logits = model.get_logits_from_input_ids(input_ids + generated)
+        next_id = max(range(len(logits)), key=lambda i: logits[i])
+        token = token_id_to_text.get(next_id, "")
+        if not token:
+            break
+        generated.append(next_id)
+        text = model.decode(generated).strip()
+        if not text:
+            continue
+        try:
+            result = json.loads(text)
+            validated = param_model.model_validate(result)
+            return validated.model_dump()
+        except (json.JSONDecodeError, ValueError, TypeError):
+            continue
+    return None
 
 
 def generate_response(
