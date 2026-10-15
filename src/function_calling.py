@@ -1,16 +1,16 @@
 """Functions for model initialization and JSON response generation."""
 import json
+from typing import Any, cast
 import threading
 import sys
-from typing import Any
 from pydantic import BaseModel
 from src.models.pydantic_model import FunctionModel, BuildParameterModel
 from src.animation import loading_animation
+from src.models.pydantic_model import ParameterRulesModel
 from src.constrained_decoding import (
     build_json_valid_id,
     extract_only_expected,
     get_best_valid_token_func,
-    get_best_valid_token_param,
     load_vocabulary,
 )
 
@@ -41,52 +41,6 @@ def initialize_model(
     valid_id = build_json_valid_id(vocab, function_name)
     return model, valid_id, token_id_to_text
 
-#
-#def param_generation(
-#    model: Any,
-#    generated_ids: list[int],
-#    function: FunctionModel,
-#    prompt: str,
-#    token_id_to_text: dict[int, str],
-#    param_model: type[BaseModel],
-#    valid_param_id: set[int],
-#) -> dict[str, Any] | None:
-#    """Extract parameter values from the user's request."""
-#    parameters = function.parameters
-#    description = "\n".join(
-#        f"{name}: {param.type}"
-#        for name, param in parameters.items()
-#    )
-#    param_prompt = (
-#        f"User request: {prompt}\n"
-#        f"Function: {function.name}\n"
-#        f"Function description: {function.description}\n"
-#        f"Parameters:\n{description}\n"
-#        "Extract only the requested parameter values.\n"
-#        "Return one JSON object with the parameter names as keys.\n"
-#        "Do not calculate results or add explanations.\n"
-#        "JSON:\n"
-#    )
-#    input_ids = model.encode(param_prompt)[0].tolist()
-#    generated: list[int] = []
-#
-#    for _ in range(100):
-#        logits = model.get_logits_from_input_ids(input_ids + generated)
-#        next_id = max(range(len(logits)), key=lambda i: logits[i])
-#        token = token_id_to_text.get(next_id, "")
-#
-#        if not token:
-#            break
-#
-#        generated.append(next_id)
-#        text = model.decode(generated).strip()
-#
-#        try:
-#            result = json.loads(text)
-#            return param_model.model_validate(result).model_dump()
-#        except (json.JSONDecodeError, ValueError):
-#            continue
-#    return None
 
 def param_generation(
     model: Any,
@@ -103,24 +57,24 @@ def param_generation(
         f"- {name}: {param.type}"
         for name, param in parameters.items()
     )
-
     param_prompt = (
         f"Request: {prompt}\n"
-        f"Function: {function.name} — {function.description}\n"
-        f"Parameters:\n{description}\n"
-        "Extract the correct parameter values from the request. "
-        "Use the function description to understand each parameter. "
-        "Never use the function name as a parameter value. "
-        "For regex parameters, provide the pattern matching the "
-        "requested category, not the example matches. "
-        "Do not calculate the function result. "
-        "Return only one complete JSON object using the exact "
-        "parameter names as keys. No explanations.\n"
+        f"Function: {function.description}\n"
+        f"Parameters: {description}\n"
+        "Extract the function INPUTS, not its output. "
+        "Copy explicit input values exactly, including quoted text. "
+        "Use parameter descriptions and types to assign values. "
+        "Never execute, reverse, calculate, or transform inputs. "
+        "Use only values supported by the request. "
+        "Include every parameter with its exact name. "
+        "For missing values, use 0, false, or empty string "
+        "according to the parameter type. "
+        "Return only a complete JSON object.\n"
         "JSON:"
     )
     input_ids = model.encode(param_prompt)[0].tolist()
     generated: list[int] = []
-    for _ in range(100):
+    for _ in range(50):
         logits = model.get_logits_from_input_ids(input_ids + generated)
         next_id = max(range(len(logits)), key=lambda i: logits[i])
         token = token_id_to_text.get(next_id, "")
@@ -132,8 +86,16 @@ def param_generation(
             continue
         try:
             result = json.loads(text)
+            for name, parameter in parameters.items():
+                if name not in result:
+                    if parameter.type in ("integer", "number", "float"):
+                        result[name] = 0
+                    elif parameter.type in ("bool", "boolean"):
+                        result[name] = False
+                    else:
+                        result[name] = ""
             validated = param_model.model_validate(result)
-            return validated.model_dump()
+            return cast(dict[str, Any], validated.model_dump())
         except (json.JSONDecodeError, ValueError, TypeError):
             continue
     return None
@@ -184,8 +146,6 @@ def generate_response(
                     parsed = json.loads(expected_json)
                 except json.JSONDecodeError:
                     pass
-            #if len(all_generated_id) > 100:
-            #    break
         selected_model = next(
             (
                 fn for fn in functions
@@ -196,7 +156,6 @@ def generate_response(
         if selected_model is None:
             return parsed
         param_model = BuildParameterModel(selected_model)
-        print("SELECTED FUNCTION:", selected_function)
         params = param_generation(
             model,
             input_ids,

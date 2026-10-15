@@ -1,6 +1,6 @@
 [
   {
-    "prompt": "What is the sum of 5 cat and 4 dog and 4?"
+    "prompt": "What is the sum of five cat and four dog and three lion?"
   },
   {
     "prompt": "What is the sum of 265 and 345?"
@@ -9,7 +9,7 @@
     "prompt": "Greet shrek"
   },
   {
-    "prompt": "Greet john"
+    "prompt": "Greet 123"
   },
   {
     "prompt": "Reverse the string 'hello'"

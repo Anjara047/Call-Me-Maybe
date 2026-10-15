@@ -1,6 +1,6 @@
 """Define Pydantic models for function calling."""
 import sys
-from typing import Any
+from typing import Any, cast
 try:
     from pydantic import BaseModel, ConfigDict, Field, create_model
 except (ImportError, ModuleNotFoundError):
@@ -67,9 +67,7 @@ class PromptModel(BaseModel):
 
 
 class OutputModel(BaseModel):
-    """
-    Define the structure of the output.
-    """
+    """Define the structure of the output."""
 
     prompt: str
     name: str
@@ -77,18 +75,24 @@ class OutputModel(BaseModel):
 
 
 class FunctionNameModel(BaseModel):
+    """Define the name of function name."""
+
     func: list[FunctionModel]
     names: list[str] = []
 
     def model_post_init(self, __context: Any) -> None:
+        """Define the way to find the function name."""
         self.names = [fn.name for fn in self.func]
 
 
 class FunctionParameterModel(BaseModel):
+    """Define the parameter for each function name."""
+
     func: list[FunctionModel]
     parameters: list[dict[str, dict[str, Any]]] = Field(default_factory=list)
 
     def model_post_init(self, __context: Any) -> None:
+        """Construct the rules for choosing the parameter for each function."""
         for fn in self.func:
             self.parameters.append({
                 fn.name: {
@@ -98,6 +102,7 @@ class FunctionParameterModel(BaseModel):
 
 
 def BuildParameterModel(function: FunctionModel) -> type[BaseModel]:
+    """Set to build the parameter for each function."""
     type_maping: dict[str, Any] = {
         "string": str,
         "number": int | float,
@@ -108,14 +113,31 @@ def BuildParameterModel(function: FunctionModel) -> type[BaseModel]:
     fields: dict[str, tuple[Any, Any]] = {}
     for name, parameter in function.parameters.items():
         parameter_type = type_maping.get(parameter.type)
-        #print("NAME:", name)
-        #print("DECLARED TYPE:", parameter.type)
-        #print("PYTHON TYPE:", parameter_type)
         if parameter_type is None:
             raise ValueError(f"Unsupported parameter type: {parameter.type}")
             continue
         fields[name] = (parameter_type)
-    return create_model(
+    return cast(type[BaseModel], create_model(
         f"{function.name}Parameters",
         **fields
-    )
+    ))
+
+
+
+class ParameterRulesModel(BaseModel):
+    """Define dynamic rules for extracting function parameters."""
+
+    model_config = config
+    function: FunctionModel
+    rules: dict[str, str] = Field(default_factory=dict)
+
+    def model_post_init(self, __context: Any) -> None:
+        self.rules = {
+            name: (
+                f"Extract the input value for '{name}' "
+                f"as type '{parameter.type}'. "
+                f"Use the function description and user prompt "
+                f"to identify the correct value."
+            )
+            for name, parameter in self.function.parameters.items()
+        }

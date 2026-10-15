@@ -9,7 +9,6 @@ from src.constrained_decoding import build_system_prompt
 from src.constrained_decoding import load_vocabulary
 from src.constrained_decoding import build_json_valid_id
 from src.constrained_decoding import get_best_valid_token_func
-from src.constrained_decoding import get_best_valid_token_param
 from src.constrained_decoding import extract_only_expected
 
 __all__ = [

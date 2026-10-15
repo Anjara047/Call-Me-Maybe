@@ -76,42 +76,6 @@ def get_best_valid_token_func(
     return highest_prob
 
 
-def get_best_valid_token_param(
-    logits: list[float],
-    valid_param_id: set[int],
-    parameter_type: str,
-    token_id_to_text: dict[int, str],
-    prompt_token_id: set[int],
-) -> int:
-    """Choose the highest-probability valid parameter token."""
-    masked_logits = [float("-inf")] * len(logits)
-    for token_id in range(len(logits)):
-        token = token_id_to_text.get(token_id, "")
-        if token.strip() == "":
-            #masked_logits[token_id] = logits[token_id]
-            continue
-        if parameter_type == "integer":
-            allowed = token.strip().isdigit()
-        elif parameter_type in ("number", "float"):
-            value = token.strip()
-            allowed = value.replace(".", "", 1).isdigit()
-        
-        elif parameter_type == "bool":
-            allowed = token.strip().lower() in ("true", "false")
-        else:
-            allowed = token_id in prompt_token_id
-            #allowed = True
-        if allowed:
-            masked_logits[token_id] = logits[token_id]
-    best_id = max(
-        range(len(masked_logits)),
-        key=lambda i: masked_logits[i],
-    )
-    if masked_logits[best_id] == float("-inf"):
-        return -1
-    return best_id
-
-
 def build_json_valid_id(vocab: Any, function_name: list[str]) -> set[int]:
     """
     Build the set of token IDs containing only valid JSON characters.
@@ -122,7 +86,6 @@ def build_json_valid_id(vocab: Any, function_name: list[str]) -> set[int]:
     Returns:
         The set of token IDs containing only valid JSON characters.
     """
-
     valid_json = set("".join(function_name))
     valid_token = set()
     for token_str, token_id in vocab.items():
@@ -170,16 +133,26 @@ def choose_function(functions: Any) -> str:
         func.append(f"- {fn.name}({params}): {fn.description}")
     return "\n".join(func)
 
-    
+
 def build_rules() -> list[str]:
-    """Build all the system rules for the LLM."""
+    """
+    Build all the system rules for the LLM.
+
+    Returns:
+        list of all the prompt
+    """
     rules: list[str] = []
     rule = (
-        "Select exactly one function that best matches the user's requested operation.",
-        "Use the function names and descriptions to determine the user's intent.",
-        "Match the requested operation, not just the parameter names or parameter types.",
-        "Choose the function whose description most directly corresponds to the user's request.",
-        "Do not select a function only because its parameters have matching types.",
+        "Select exactly one function that best matches"
+        "the user's requested operation.",
+        "Use the function names and descriptions"
+        "to determine the user's intent.",
+        "Match the requested operation,"
+        "not just the parameter names or parameter types.",
+        "Choose the function whose description"
+        "most directly corresponds to the user's request.",
+        "Do not select a function only because"
+        "its parameters have matching types.",
         "Do not execute the function or calculate its result.",
     )
     rules.extend(rule)
