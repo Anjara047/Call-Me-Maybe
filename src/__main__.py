@@ -31,6 +31,10 @@ def main() -> None:
     heading()
     print("🚀 Starting...")
     arguments = parser_config()
+    if not arguments.output.endswith(".json"):
+        print("Sorry ...")
+        print("The file that will contain the output must be a .json")
+        sys.exit()
     function = load_function_definition(arguments.functions_definition)
     if function is None:
         print("💡 Please fix the format in functions", end="")
@@ -92,13 +96,13 @@ def main() -> None:
         all_result.append(rresult.model_dump())
         result = all_result[-1]
         print(json.dumps(result, indent=4))
+        save_results(arguments.output, all_result)
     total_time = (time.perf_counter() - start_time) / 60
     print(f"🕐 Total time: {total_time:.2f} minutes")
     if len(prompt) > 0:
         each_prompt = total_time / len(prompt) * 60
-        print(f"📈 Average time per prompt: ", end="")
+        print("📈 Average time per prompt: ", end="")
         print(f"{each_prompt:.2f} seconds")
-    save_results(arguments.output, all_result)
 
 
 if __name__ == "__main__":

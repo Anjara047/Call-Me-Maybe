@@ -91,7 +91,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "flake8" },
+    { name = "flake8", specifier = ">=7.4.1" },
     { name = "llm-sdk", directory = "llm_sdk" },
     { name = "mypy" },
     { name = "numpy" },

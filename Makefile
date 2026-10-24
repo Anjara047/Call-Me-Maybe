@@ -1,6 +1,6 @@
 PYTHON = 3.13.1
-GOINFRE_CACHE = $(HOME)/sgoinfre/call_me_maybe_cache
-GOINFRE_VENV = $(HOME)/sgoinfre/call_me_maybe_venv
+GOINFRE_VENV = $(HOME)/goinfre/call_me_maybe_venv
+GOINFRE_CACHE = $(HOME)/goinfre/call_me_maybe_cache
 GOINFRE_PYTHON = $(GOINFRE_CACHE)/python
 
 .PHONY: all install run debug clean fclean lint
@@ -21,7 +21,9 @@ run:
 	@HF_HOME=$(GOINFRE_CACHE)/huggingface \
 		UV_CACHE_DIR=$(GOINFRE_CACHE)/uv \
 		UV_PROJECT_ENVIRONMENT=$(GOINFRE_VENV) \
-		uv run --no-sync python -m src
+		uv run --no-sync python -m src 2>/dev/null; \
+		status=$$?; \
+		exit $$status
 
 debug:
 	@HF_HOME=$(GOINFRE_CACHE)/huggingface \

@@ -25,7 +25,6 @@ def extract_only_expected(text: str) -> str | None:
     start = text.find("{")
     if start == -1:
         return None
-
     bracket = 0
     for i in range(start, len(text)):
         if text[i] == "{":
@@ -34,7 +33,6 @@ def extract_only_expected(text: str) -> str | None:
             bracket = bracket - 1
         if bracket == 0:
             return text[start: i + 1]
-
     return None
 
 
@@ -134,6 +132,55 @@ def choose_function(functions: Any) -> str:
     return "\n".join(func)
 
 
+def prompt_for_param(prompt: str, function: Any, description: str) -> str:
+    """
+    Build the prompt to extract the parameter from the prompt.
+
+    Args:
+        prompt: the user's request
+        function: the available function
+        description: description of each function
+
+    Return:
+        list of the prompt for the parameter extraction
+    """
+    rules_extraction = (
+        "Extract function arguments from the request. Infer missing values "
+        "from the function and parameter descriptions. "
+    )
+
+    rules_preserve = (
+        "Preserve source inputs exactly. Choose regex patterns that match "
+        "the requested characters or text. "
+    )
+
+    rules_replacement = (
+        "Use exactly the requested replacement text, not text copied from "
+        "the source or repeated. Use the exact replacement requested "
+        "(e.g. 'NUMBERS' or '*'), and match each target character "
+        "individually in the regex for each match. "
+    )
+
+    output_for_rule = (
+        "Infer arguments without executing the function"
+        "Do not invent values. "
+        "For missing values, use 0 for numbers, false for booleans, "
+        "or an empty string for strings. "
+        "Return one valid JSON object with only the listed parameter names. "
+        "Return JSON only.\nJSON:"
+    )
+    param_prompt = (
+        f"Request: {prompt}\n"
+        f"Function: {function.description}\n"
+        f"Parameters: {description}\n"
+        f"{rules_extraction}"
+        f"{rules_preserve}"
+        f"{rules_replacement}"
+        f"{output_for_rule}"
+    )
+    return param_prompt
+
+
 def build_rules() -> list[str]:
     """
     Build all the system rules for the LLM.
@@ -142,20 +189,32 @@ def build_rules() -> list[str]:
         list of all the prompt
     """
     rules: list[str] = []
-    rule = (
+    select_func = (
         "Select exactly one function that best matches"
-        "the user's requested operation.",
+        "the user's requested operation."
+    )
+    select_best_matches = (
         "Use the function names and descriptions"
-        "to determine the user's intent.",
+        "to determine the user's intent."
+    )
+    matching = (
         "Match the requested operation,"
         "not just the parameter names or parameter types.",
         "Choose the function whose description"
         "most directly corresponds to the user's request.",
+    )
+    strict_rule = (
         "Do not select a function only because"
         "its parameters have matching types.",
+    )
+    no_execute = (
         "Do not execute the function or calculate its result.",
     )
-    rules.extend(rule)
+    rules.extend(select_func)
+    rules.extend(select_best_matches)
+    rules.extend(matching)
+    rules.extend(strict_rule)
+    rules.extend(no_execute)
     return rules
 
 

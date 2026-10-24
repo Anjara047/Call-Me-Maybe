@@ -121,23 +121,3 @@ def BuildParameterModel(function: FunctionModel) -> type[BaseModel]:
         f"{function.name}Parameters",
         **fields
     ))
-
-
-
-class ParameterRulesModel(BaseModel):
-    """Define dynamic rules for extracting function parameters."""
-
-    model_config = config
-    function: FunctionModel
-    rules: dict[str, str] = Field(default_factory=dict)
-
-    def model_post_init(self, __context: Any) -> None:
-        self.rules = {
-            name: (
-                f"Extract the input value for '{name}' "
-                f"as type '{parameter.type}'. "
-                f"Use the function description and user prompt "
-                f"to identify the correct value."
-            )
-            for name, parameter in self.function.parameters.items()
-        }

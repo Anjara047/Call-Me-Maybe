@@ -6,12 +6,12 @@ import sys
 from pydantic import BaseModel
 from src.models.pydantic_model import FunctionModel, BuildParameterModel
 from src.animation import loading_animation
-from src.models.pydantic_model import ParameterRulesModel
 from src.constrained_decoding import (
     build_json_valid_id,
     extract_only_expected,
     get_best_valid_token_func,
     load_vocabulary,
+    prompt_for_param,
 )
 
 try:
@@ -25,7 +25,18 @@ def initialize_model(
     model_name: str,
     function_name: list[str],
 ) -> tuple[Any, set[int], dict[int, str]]:
-    """Initialize the language model and valid token IDs."""
+    """
+    Initialize the language model and valid token IDs.
+
+    Args:
+        model_name: The model to use
+        function_name: all the available function to be choosen
+
+    Return:
+        model: The model that will be used
+        valid_id: all the valid_id that matches the constrained
+        token_id_to_text: the text from the model
+    """
     print(f"🔥 Model to Use: {model_name}")
     try:
         model = Small_LLM_Model(model_name=model_name)
@@ -51,27 +62,27 @@ def param_generation(
     param_model: type[BaseModel],
     valid_param_id: set[int],
 ) -> dict[str, Any] | None:
-    """Extract and validate parameter values from a user request."""
+    """
+    Extract and validate parameter values from a user request.
+
+    Args:
+        model_name: The model to use
+        generated_ids: all the available id to generate
+        function: the appropriate schema
+        prompt: the user's request
+        token_id_to_text: the text from the model
+        param_model: a model that will be valid to get
+        valid_param_id: all the vocab valid for the parameter
+
+    Return:
+        the appropriate json format
+    """
     parameters = function.parameters
     description = "\n".join(
         f"- {name}: {param.type}"
         for name, param in parameters.items()
     )
-    param_prompt = (
-        f"Request: {prompt}\n"
-        f"Function: {function.description}\n"
-        f"Parameters: {description}\n"
-        "Extract the function INPUTS, not its output. "
-        "Copy explicit input values exactly, including quoted text. "
-        "Use parameter descriptions and types to assign values. "
-        "Never execute, reverse, calculate, or transform inputs. "
-        "Use only values supported by the request. "
-        "Include every parameter with its exact name. "
-        "For missing values, use 0, false, or empty string "
-        "according to the parameter type. "
-        "Return only a complete JSON object.\n"
-        "JSON:"
-    )
+    param_prompt = prompt_for_param(prompt, function, description)
     input_ids = model.encode(param_prompt)[0].tolist()
     generated: list[int] = []
     for _ in range(50):
@@ -81,11 +92,11 @@ def param_generation(
         if not token:
             break
         generated.append(next_id)
-        text = model.decode(generated).strip()
-        if not text:
+        param_text = model.decode(generated).strip()
+        if not param_text:
             continue
         try:
-            result = json.loads(text)
+            result = json.loads(param_text)
             for name, parameter in parameters.items():
                 if name not in result:
                     if parameter.type in ("integer", "number", "float"):
@@ -110,7 +121,21 @@ def generate_response(
     token_id_to_text: dict[int, str],
     valid_param_id: set[int]
 ) -> dict[str, Any] | None:
-    """Generate a JSON response for one user prompt."""
+    """
+    Generate a JSON response for one user prompt.
+
+    Args:
+        model_name: The model to use
+        valid_id: all the valid id to be choosen for the next token
+        system: the model that will help for generation
+        user_prompt: the user's request
+        functions: all the available function in function definition
+        token_id_to_text: the text from the model
+        valid_param_id: a set of the id needed for the constrained
+
+    Return:
+        the valid json schema
+    """
     all_prompt = f"{system}\nUser prompt: {user_prompt}\nAssistant: "
     input_ids = model.encode(all_prompt)[0].tolist()
     all_generated_id = model.encode('{"name" : "')[0].tolist()

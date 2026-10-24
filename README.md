@@ -2,6 +2,8 @@
 
 # CALL ME MAYBE
 
+This project has been created as part of the 42 curriculum by tsanjara.
+
 ## Description
 
 This project is part of Milestone 3 at 42 School. It introduces function calling in Large Language Models (LLMs). The project focuses on translating natural language into a language that computers can understand and execute.
@@ -10,116 +12,115 @@ This project is part of Milestone 3 at 42 School. It introduces function calling
 
 LLM stands for Large Language Model. It acts as a bridge between natural language and function calls, translating the user's request into a structured function call. It determines which function best matches the user's prompt and provides the required arguments for that function.
 
-Function calling allows the LLMs to interact with external tools and systems by translating natural language request into structured fuction calls.
+Function calling allows LLMs to interact with external tools and systems by translating natural language requests into structured function calls.
 
 ### Goal
-So by means, the Goal of this project is to understand on how the LLMs works with the function calling to translate natural language requests into structured and executable action
+
+The goal of this project is to understand how LLMs use function calling to translate natural language requests into structured and executable actions.
 
 ## Instructions
 
-Here are some instructions that may help during the test.
-
 Make sure you have at least **11 GB of free disk space** before starting. This is needed for the project dependencies and cache files.
 
-* `make install`: Run this the first time to install all required dependencies and prepare the caches.
-* `make run`    : Run the program from the source.
-* `make clean`  : Remove temporary files such as `__pycache__`.
-* `make fclean` : Run this when you are completely done to remove the dependencies and caches, as they can take up a significant amount of disk space.
-* `make lint`   : Check that the project follows the coding standards using **Flake8** and **Mypy**.
-
+- `make install`: Run this the first time to install all required dependencies and prepare the caches.
+- `make run`: Run the program from the source.
+- `make clean`: Remove temporary files such as `__pycache__`.
+- `make fclean`: Remove the dependencies and caches when you are completely done, as they can take up significant disk space.
+- `make lint`: Check that the project follows the coding standards using **Flake8** and **Mypy**.
 
 ## Resources
 
-* Thanks to the 42 School learning system, particularly the peer-to-peer methodology, which greatly helped in understanding the project's objectives and expectations.
-* Online documentation(geeksforgeeks, w3schools, ...) and youtube tutorials, which provides ideas and inspiration for Algorithms, strategies, and implementation technics
+- Thanks to the 42 School learning system, particularly the peer-to-peer methodology, which greatly helped in understanding the project's objectives and expectations.
+- Online documentation (GeeksforGeeks, W3Schools, etc.) and YouTube tutorials provided ideas and inspiration for algorithms, strategies, and implementation techniques.
 
 ### Use of AI
 
-* AI tools were used as learning aids to better understand expected behaviors, clarify edge cases, and verify reasoning while debugging.
-* AI was not used to directly generate the project solution, but to assist with explanations, documentation writing, and overall project organization.
+- AI tools were used as learning aids to better understand expected behaviors, clarify edge cases, and verify reasoning while debugging.
+- AI was not used to directly generate the project solution, but to assist with explanations, documentation writing, and overall project organization.
 
 ## Algorithm
 
 ### Algorithm Overview
 
-The constrained decoding approach ensures that the LLM can only generate outputs that follow the expected format.
+The project uses a constrained decoding strategy to generate structured function calls. Instead of allowing the model to select any token from its vocabulary, the decoding process restricts token selection according to the expected output format.
 
-At each step, the model generates a probability distribution for the possible next tokens. The decoder then filters out tokens that would violate the required constraints. Only valid tokens remain available for selection.
+At each generation step, the model assigns scores to possible next tokens. The decoding mechanism uses these scores to select a valid token, progressively constructing the expected JSON output.
 
-This process is repeated for each token until the complete output is generated. As a result, the final output follows the required structure and can be safely interpreted as a function call.
+This approach helps ensure that the generated function call follows the required structure and can be parsed by the program.
 
+### Design Decisions
 
-### Design decisions
+I divided the implementation into several functions, each responsible for a specific part of the process.
 
-As it was the toughest part of the project, I decided to devide it into multiple small function with each part has its own responsible
-These are all of their task:
-| Function | Description |
+| Function | Responsibility |
 |---|---|
-| `extract_only_expected` | Extracts only the JSON object that matches the expected output format. |
-| `get_best_valid_token` | Selects the highest-scoring token from the valid tokens. |
-| `build_json_valid_id` | Identifies all tokens that are valid for the expected output. |
-| `load_vocabulary` | Loads the tokenizer vocabulary from the model. |
-| `choose_function` | Converts all available functions into a readable description. |
-| `build_system_prompt` | Tells the LLM which functions are available and enforces the expected JSON format. |
+| `extract_only_expected` | Extracts the expected JSON object from the generated text. |
+| `get_best_valid_token_func` | Selects the best valid token to progressively identify the appropriate function. |
+| `build_json_valid_id` | Determines which token IDs are allowed during function selection. |
+| `load_vocabulary` | Loads the model's vocabulary for token processing. |
+| `choose_function` | Prepares the available function definitions so the model can compare them with the user's request. |
+| `build_system_prompt` | Guides the model in choosing the most suitable function and generating the expected JSON structure. |
 
-The system prompt also take an important role on choosing the functions and prevents from choosing an unmatched function and set the name of function as ""None
+The main objective of this process is to select the function that best matches the user's request. The model uses the available function descriptions and the system prompt to identify the appropriate function.
 
-### Performance analysis
+Once a function has been selected, the program extracts its required parameters and validates them against the corresponding parameter model. Separating function selection from parameter generation makes the implementation easier to test, debug, and maintain.
 
-The implementation uses a greedy decoding strategy, by selecting the highest ligit with valid token at each step. This keeps the decoding process simple and deterministic.
-The vocabulary is filtered once into a set of valid token IDs, allowing token selection to operate only permitted tokens.
+### Performance Analysis
 
-### Challenges faced
+The implementation uses a greedy decoding strategy, selecting the highest-scoring valid token at each step. This keeps the decoding process simple and deterministic.
 
-Facing a new project is always tough, especially when trying to understand the goal of the project, the concepts behind it, and what the subject expects.
+The vocabulary is filtered into a set of valid token IDs, allowing token selection to operate only on permitted tokens during constrained function selection.
 
-After understanding what needs to be done, it is still difficult to implement it and make the code work according to the requirements of the subject.
+### Challenges Faced
 
-One of the main challenges throughout this project was understanding how an LLM's token prediction process can be controlled using constraints. As the subject itself says, the function calls must match the user's prompt, and the function name must be set to `None` when there is no matching function for the user's request.
+Facing a new project is always challenging, especially when trying to understand its objectives, the underlying concepts, and the requirements of the subject.
 
-Another challenge was finding a practical approach to control the model's output and make it generate the expected JSON structure while still respecting the constraints.
+After understanding what needed to be done, implementing the solution and making it work according to the requirements presented another challenge.
 
-I solved these challenges by first breaking the project into smaller parts and trying to understand each concept separately. I also discussed the difficulties with my teammate and used more tests to understand how the model behaved with different prompts and function calls.
+One of the main difficulties was understanding how an LLM's token prediction process can be controlled using constraints. The function call must match the user's request, and the generated output must follow the expected structure.
 
-Through these discussions and tests, I was finally able to find an approach that works for the project. It may not be a perfect or complete solution to the general problem of controlling an LLM, but it was a practical approach that allowed me to meet the requirements of this project and better understand how constrained decoding and function calling work.
+Another challenge was finding a practical approach to guide the model toward the appropriate function while generating valid JSON.
+
+I addressed these challenges by breaking the project into smaller parts and studying each concept separately. I also discussed the difficulties with my teammate and performed additional tests to better understand the model's behavior with different prompts and function calls.
+
+Through these discussions and experiments, I found an approach that works for the project. Although it may not be a complete solution to the general problem of controlling an LLM, it provided a practical way to meet the project's requirements and better understand constrained decoding and function calling.
 
 ### Testing Strategy
 
-I validated my implementation by testing it with different prompts and function definitions to check how the model behaves in different situations.
+I validated my implementation by testing different prompts and function definitions to evaluate the model's behavior.
 
-I tested prompts that clearly match an available function, as well as prompts that do not match any available function. In the second case, I verified that the result correctly returns `None` instead of selecting an unrelated function.
+I tested prompts that clearly matched available functions to verify that the appropriate function was selected.
 
-I also tested different types of arguments to make sure they are correctly extracted and converted according to the expected parameter types.
+I also tested different argument types to check whether parameter values were correctly extracted and converted according to the expected types.
 
-For the constrained decoding part, I tested different prompts to verify that the model generates a valid JSON structure and that the generated result can be correctly parsed and processed by the program.
+For the constrained decoding component, I tested various prompts to verify that the generated output followed the required JSON structure and could be parsed and processed by the program.
 
 Finally, I tested edge cases such as invalid arguments, missing parameters, unsupported requests, and prompts containing special characters. These tests helped me identify problems in the implementation and improve the reliability of the final result.
 
+### Example Usage
 
-### Example usage
+Before running the program, make sure all required dependencies are installed.
 
-As mentioned in the instructions above, make sure that all the required dependencies are installed before running the program.
+The project also requires a directory containing the necessary data files. These files are used by the program to access function definitions and user prompts.
 
-The project also requires a directory containing the necessary data files. These files are used by the program to find the function definitions and the files containing the user prompts.
+The project uses `llm_sdk`, which provides the LLM used by the program.
 
-The project also uses `llm_sdk`, which provides the LLM used by the program.
-
-Once everything is properly set up, the program can be launched with:
+Once everything is properly set up, launch the program with:
 
 ```bash
 make run
 ```
 
-The program will load the function definitions and user prompts, process the prompts using the LLM, and generate the corresponding function calls.
+The program loads the function definitions and user prompts, processes the prompts using the LLM, and generates the corresponding function calls.
 
-Make sure that each function definition contains all the required parameters:
+Make sure each function definition contains all the required fields:
 
-* `name`
-* `description`
-* `parameters`
-* `returns`
+- `name`
+- `description`
+- `parameters`
+- `returns`
 
-Do not add extra parameters. Only these four parameters are allowed in the function definition.
+Do not add extra fields. Only these four fields are allowed in each function definition.
 
 For example:
 
@@ -157,13 +158,15 @@ For example:
 
 For example, the prompt `Add 5 and 10` can be matched with `fn_add_numbers`, while `Reverse "hello"` can be matched with `fn_reverse_string`.
 
-This is an example of the function calling
+Here are examples of user prompts:
+
 ```json
+[
   {
     "prompt": "Add two random numbers"
   },
   {
     "prompt": "Pick and calculate the square root of a number"
   }
-  ```
-
+]
+```
